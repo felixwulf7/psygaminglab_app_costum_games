@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PsyGamingLab - Dynamic Therapeutic Games</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            max-width: 800px;
+            width: 90%;
+            margin: 2rem auto;
+        }
+        
+        h1 {
+            color: #4a6fa5;
+            margin-top: 0;
+            text-align: center;
+            font-size: 2rem;
+        }
+        
+        h2 {
+            color: #5e81ac;
+            border-bottom: 2px solid #eceff4;
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+        }
+        
+        p {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #4c566a;
+        }
+        
+        textarea, select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #d8dee9;
+            border-radius: 5px;
+            font-family: inherit;
+            font-size: 1rem;
+            box-sizing: border-box;
+            margin-bottom: 1.5rem;
+        }
+        
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        button {
+            background-color: #5e81ac;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        button:hover {
+            background-color: #4c566a;
+        }
+        
+        button:disabled {
+            background-color: #d8dee9;
+            color: #4c566a;
+            cursor: not-allowed;
+        }
+        
+        #loading {
+            display: none;
+            text-align: center;
+            margin: 1rem 0;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 5px solid rgba(94, 129, 172, 0.2);
+            border-radius: 50%;
+            border-top-color: #5e81ac;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        #result {
+            display: none;
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: #eceff4;
+            border-radius: 5px;
+            text-align: center;
+        }
+        
+        #result a {
+            display: inline-block;
+            background-color: #a3be8c;
+            color: white;
+            text-decoration: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            margin-top: 1rem;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        
+        #result a:hover {
+            background-color: #8fbcbb;
+        }
+        
+        #error {
+            display: none;
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #bf616a;
+            color: white;
+            border-radius: 5px;
+        }
+        
+        .examples {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 1rem 0;
+        }
+        
+        .example-chip {
+            background-color: #eceff4;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .example-chip:hover {
+            background-color: #d8dee9;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            color: #4c566a;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PsyGamingLab Dynamic Therapeutic Games</h1>
+        
+        <p>
+            Transform your emotional challenges into an interactive 3D gaming experience.
+            Enter a situation, emotion, or belief you're struggling with, and our system will
+            generate a personalized therapeutic game to help you process and reframe negative thoughts.
+        </p>
+        
+        <h2>Create Your Custom Game</h2>
+        
+        <form id="gameForm">
+            <div>
+                <label for="userInput">What are you struggling with?</label>
+                <textarea id="userInput" placeholder="Example: anxiety about job interview, feeling overwhelmed by work, guilt about setting boundaries, etc."></textarea>
+            </div>
+            
+            <div class="examples">
+                <span class="example-chip">Anxiety about job loss</span>
+                <span class="example-chip">Feeling overwhelmed by responsibilities</span>
+                <span class="example-chip">Perfectionism</span>
+                <span class="example-chip">Impostor syndrome</span>
+                <span class="example-chip">Fear of rejection</span>
+            </div>
+            
+            <div>
+                <label for="modelSelect">Choose LLM Model (Requires Ollama)</label>
+                <select id="modelSelect">
+                    <option value="gemma3:4b">Gemma 3 4B (default)</option>
+                    <!-- Additional models will be populated from the API -->
+                </select>
+            </div>
+            
+            <button type="submit" id="generateBtn">Generate Custom Game</button>
+        </form>
+        
+        <div id="loading">
+            <p>Generating your personalized therapeutic game...</p>
+            <div class="spinner"></div>
+            <p>This may take up to 30 seconds, depending on the model.</p>
+        </div>
+        
+        <div id="error"></div>
+        
+        <div id="result">
+            <h2>Your Custom Game is Ready!</h2>
+            <p>We've created a personalized therapeutic game experience based on your input.</p>
+            <p>Click the button below to launch your game:</p>
+            <a id="gameLink" href="#" target="_blank">Play Your Custom Game</a>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Powered by LLM technology. For educational and therapeutic purposes only. Not a substitute for professional mental health care.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('gameForm');
+            const userInput = document.getElementById('userInput');
+            const modelSelect = document.getElementById('modelSelect');
+            const generateBtn = document.getElementById('generateBtn');
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            const gameLink = document.getElementById('gameLink');
+            const error = document.getElementById('error');
+            const exampleChips = document.querySelectorAll('.example-chip');
+            
+            // Handle example chips
+            exampleChips.forEach(chip => {
+                chip.addEventListener('click', function() {
+                    userInput.value = this.textContent;
+                });
+            });
+            
+            // Load available models
+            fetch('/api/models')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.models && data.models.length > 0) {
+                        // Clear default option
+                        modelSelect.innerHTML = '';
+                        
+                        // Add models to select element
+                        data.models.forEach(model => {
+                            const option = document.createElement('option');
+                            option.value = model;
+                            option.textContent = model;
+                            // Set gemma3:4b as default if available
+                            if (model === 'gemma3:4b') {
+                                option.selected = true;
+                            }
+                            modelSelect.appendChild(option);
+                        });
+                    }
+                })
+                .catch(err => {
+                    console.error('Error loading models:', err);
+                    // Show Ollama not running message
+                    error.textContent = 'Could not connect to Ollama. Please ensure Ollama is installed and running.';
+                    error.style.display = 'block';
+                });
+            
+            // Handle form submission
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const inputText = userInput.value.trim();
+                const selectedModel = modelSelect.value;
+                
+                if (!inputText) {
+                    error.textContent = 'Please describe what you are struggling with.';
+                    error.style.display = 'block';
+                    return;
+                }
+                
+                // Show loading, hide other elements
+                loading.style.display = 'block';
+                result.style.display = 'none';
+                error.style.display = 'none';
+                generateBtn.disabled = true;
+                
+                // Make API request to create game
+                fetch('/api/create-game', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userInput: inputText,
+                        model: selectedModel
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    loading.style.display = 'none';
+                    generateBtn.disabled = false;
+                    
+                    if (data.error) {
+                        error.textContent = data.error;
+                        error.style.display = 'block';
+                    } else {
+                        result.style.display = 'block';
+                        gameLink.href = data.url;
+                    }
+                })
+                .catch(err => {
+                    loading.style.display = 'none';
+                    generateBtn.disabled = false;
+                    error.textContent = 'An error occurred. Please try again later.';
+                    error.style.display = 'block';
+                    console.error('Error generating game:', err);
+                });
+            });
+        });
+    </script>
+</body>
+</html> 

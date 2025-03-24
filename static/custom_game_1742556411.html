@@ -1,0 +1,1587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Target: Responsibility - Reclaim Control</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            display: block;
+        }
+        #info {
+            position: absolute;
+            top: 10px;
+            width: 100%;
+            text-align: center;
+            color: white;
+            font-size: 24px;
+            text-shadow: 1px 1px 2px black;
+            z-index: 100;
+        }
+        #gameMenu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            color: white;
+            text-align: center;
+            z-index: 200;
+        }
+        #gameMenu h1 {
+            color: #00ffff;
+            margin-top: 0;
+        }
+        #gameMenu p {
+            margin-bottom: 20px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #4CAF50;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+        #crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            margin-left: -10px;
+            margin-top: -10px;
+            color: white;
+            font-size: 20px;
+            z-index: 100;
+            pointer-events: none;
+        }
+        #hudContainer {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            color: white;
+            text-shadow: 1px 1px 2px black;
+            z-index: 100;
+        }
+        #ammoSelector {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            color: white;
+            text-shadow: 1px 1px 2px black;
+            z-index: 100;
+            text-align: right;
+        }
+        .ammoType {
+            cursor: pointer;
+            padding: 5px;
+            margin: 5px 0;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .ammoType:hover, .selected {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+        #levelComplete {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            color: white;
+            text-align: center;
+            z-index: 200;
+            display: none;
+        }
+        #levelComplete h2 {
+            color: #00ffff;
+        }
+        #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            color: white;
+            text-align: center;
+            z-index: 200;
+            display: none;
+        }
+        #gameOver h2 {
+            color: #ff6666;
+        }
+        .fadeIn {
+            animation: fadeIn 1s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .shake {
+            animation: shake 0.5s;
+        }
+        @keyframes shake {
+            0% { transform: translate(-50%, -50%) translate(0, 0); }
+            10% { transform: translate(-50%, -50%) translate(-5px, 0); }
+            30% { transform: translate(-50%, -50%) translate(5px, 0); }
+            50% { transform: translate(-50%, -50%) translate(-5px, 0); }
+            70% { transform: translate(-50%, -50%) translate(5px, 0); }
+            90% { transform: translate(-50%, -50%) translate(-5px, 0); }
+            100% { transform: translate(-50%, -50%) translate(0, 0); }
+        }
+    </style>
+</head>
+<body>
+    <div id="info">Target: Responsibility - Reclaim Control</div>
+    <div id="crosshair">+</div>
+    <div id="hudContainer">
+        <div id="score">Score: 0</div>
+        <div id="health">Health: 100</div>
+        <div id="level">Level: 1</div>
+    </div>
+    <div id="ammoSelector">
+        <div class="ammoType selected" data-ammo="0">&#9755; "I can manage my tasks effectively."</div>
+        <div class="ammoType" data-ammo="1">&#9755; "One step at a time is enough."</div>
+        <div class="ammoType" data-ammo="2">&#9755; "My efforts matter, I'm doing well."</div>
+        <div class="ammoType" data-ammo="3">&#9755; "I choose to prioritize, calmly now."</div>
+        <div class="ammoType" data-ammo="4">&#9755; "I accept this, I’m capable, strong."</div>
+    </div>
+    <div id="gameMenu">
+        <h1>Target: Responsibility - Reclaim Control</h1>
+        <p>Transform self-judgmental thoughts about Feeling overwhelmed by responsibilities into self-compassion.</p>
+        <p>Learn to recognize and challenge negative thoughts related to Feeling overwhelmed by responsibilities.</p>
+        <p>Use WASD to move, SPACE to jump, MOUSE to aim, and LEFT CLICK to shoot.</p>
+        <p>Select different wisdom perspectives with 1-5 keys or click on them.</p>
+        <p>Match each negative thought with its compassionate counterpart.</p>
+        <p>Navigate through obstacles toward greater self-acceptance!</p>
+        <p>Choose difficulty:</p>
+        <div class="button" id="easyBtn">Easy</div>
+        <div class="button" id="mediumBtn">Medium</div>
+        <div class="button" id="hardBtn">Hard</div>
+    </div>
+    <div id="levelComplete">
+        <h2>Level Complete!</h2>
+        <p id="levelStats">You transformed <span id="thoughtsCleared">0</span> negative thoughts!</p>
+        <div class="button" id="nextLevelBtn">Next Level</div>
+    </div>
+    <div id="gameOver">
+        <h2>Game Over</h2>
+        <p>The negative thoughts were too overwhelming this time.</p>
+        <p id="finalScore">Final Score: 0</p>
+        <div class="button" id="restartBtn">Try Again</div>
+        <div class="button" id="menuBtn">Return to Menu</div>
+    </div>
+
+    <!-- Load Three.js from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Game state and configuration
+        const gameState = {
+            score: 0,
+            health: 100,
+            level: 1,
+            difficulty: 'medium',
+            playing: false,
+            selectedAmmo: 0,
+            thoughtsCleared: 0,
+            totalThoughts: 0
+        };
+
+        // Negative thoughts and their corresponding positive resources
+        const negativeThoughts = [
+            { text: "I'm failing everything, it's hopeless.", correctAmmo: 0, color: 0xe74c3c } // Red,
+            { text: "I'm so behind, I can't catch up.", correctAmmo: 1, color: 0x3498db } // Blue,
+            { text: "Everything is too much to handle.", correctAmmo: 2, color: 0xf1c40f } // Yellow,
+            { text: "I'm a burden to everyone.", correctAmmo: 3, color: 0x2ecc71 } // Green,
+            { text: "I'll never get it done.", correctAmmo: 4, color: 0x9b59b6 } // Purple
+        ];
+
+        // Positive resources (ammo types)
+        const positiveResources = [
+            { text: "I can manage my tasks effectively.", color: 0xc0392b },
+            { text: "One step at a time is enough.", color: 0x2980b9 },
+            { text: "My efforts matter, I'm doing well.", color: 0x8e44ad },
+            { text: "I choose to prioritize, calmly now.", color: 0x27ae60 },
+            { text: "I accept this, I’m capable, strong.", color: 0xf39c12 }
+        ];
+
+        // Level configurations with significantly increased speed
+        const levelConfigs = [
+            { numThoughts: 5, speed: 0.08, thoughtHealth: 1 },  // Level 1 (much faster)
+            { numThoughts: 8, speed: 0.10, thoughtHealth: 2 },  // Level 2 (much faster)
+            { numThoughts: 12, speed: 0.12, thoughtHealth: 2 }, // Level 3 (much faster)
+            { numThoughts: 15, speed: 0.14, thoughtHealth: 3 }, // Level 4 (much faster)
+            { numThoughts: 20, speed: 0.16, thoughtHealth: 3 }  // Level 5 (much faster)
+        ];
+
+        // Difficulty multipliers (increased challenge)
+        const difficultySettings = {
+            easy: { speedMultiplier: 0.9, healthMultiplier: 0.8, playerHealthMultiplier: 1.3 },
+            medium: { speedMultiplier: 1.4, healthMultiplier: 1.0, playerHealthMultiplier: 1.0 },
+            hard: { speedMultiplier: 1.8, healthMultiplier: 1.3, playerHealthMultiplier: 0.7 }
+        };
+
+        // Three.js variables
+        let scene, camera, renderer;
+        let player, floor;
+        let negativeThoughtEntities = [];
+        let projectiles = [];
+        let obstacles = []; // Array to store obstacles for collision detection
+        let lastTime = 0;
+
+        // Input handling
+        const keys = {};
+        const mouse = { x: 0, y: 0 };
+        let pointerLocked = false;
+
+        // Initialize the game
+        function init() {
+            // Create scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x336699); // Soft blue background
+            
+            // Create camera
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.y = 1.6; // Camera height (player height)
+            
+            // Create renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            document.body.appendChild(renderer.domElement);
+            
+            // Create lighting
+            const ambientLight = new THREE.AmbientLight(0x6699cc, 0.6); // Soft ambient light
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffcc, 0.8); // Warm sunlight
+            directionalLight.position.set(10, 20, 10);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 2048;
+            directionalLight.shadow.mapSize.height = 2048;
+            scene.add(directionalLight);
+            
+            // Create floor
+            const floorGeometry = new THREE.PlaneGeometry(100, 100);
+            const floorMaterial = new THREE.MeshStandardMaterial({ color: 0x88aa99, roughness: 0.8 }); // Soft green floor
+            floor = new THREE.Mesh(floorGeometry, floorMaterial);
+            floor.rotation.x = -Math.PI / 2;
+            floor.receiveShadow = true;
+            scene.add(floor);
+            
+            // Create player
+            player = {
+                position: new THREE.Vector3(0, 1.6, 10),
+                velocity: new THREE.Vector3(0, 0, 0),
+                onGround: true,
+                speed: 0.15,
+                jumpForce: 0.15
+            };
+
+            // Create environment (decorative elements)
+            createEnvironment();
+            
+            // Set up event listeners
+            window.addEventListener('resize', onWindowResize, false);
+            document.addEventListener('keydown', onKeyDown, false);
+            document.addEventListener('keyup', onKeyUp, false);
+            document.addEventListener('mousedown', onMouseDown, false);
+            document.addEventListener('mousemove', onMouseMove, false);
+            
+            // Set up pointer lock for camera control
+            renderer.domElement.addEventListener('click', function() {
+                if (!pointerLocked && gameState.playing) {
+                    renderer.domElement.requestPointerLock();
+                }
+            });
+            
+            document.addEventListener('pointerlockchange', function() {
+                pointerLocked = document.pointerLockElement === renderer.domElement;
+            });
+            
+            // Debugging key presses - print to console
+            console.log("Game initialized, controls: WASD to move, SPACE to jump");
+            
+            // Set up UI event listeners
+            document.getElementById('easyBtn').addEventListener('click', function() { startGame('easy'); });
+            document.getElementById('mediumBtn').addEventListener('click', function() { startGame('medium'); });
+            document.getElementById('hardBtn').addEventListener('click', function() { startGame('hard'); });
+            document.getElementById('nextLevelBtn').addEventListener('click', startNextLevel);
+            document.getElementById('restartBtn').addEventListener('click', function() { startGame(gameState.difficulty); });
+            document.getElementById('menuBtn').addEventListener('click', showMainMenu);
+            
+            // Set up ammo selector event listeners
+            const ammoTypes = document.getElementsByClassName('ammoType');
+            for (let i = 0; i < ammoTypes.length; i++) {
+                ammoTypes[i].addEventListener('click', function() {
+                    selectAmmo(this.getAttribute('data-ammo'));
+                });
+            }
+
+            // Start animation loop
+            animate(0);
+        }
+
+        // Create environment with simple obstacles
+        function createEnvironment() {
+            // Array to track obstacles for collision detection
+            obstacles = [];
+            
+            // Create some blocks/obstacles in the play area (restful areas)
+            for (let i = 0; i < 8; i++) {
+                const size = 4 + Math.random() * 5;
+                const height = 1 + Math.random() * 1.5; // Lower height for restful areas
+                
+                // Create box obstacle (couch/bed-like structures)
+                const boxGeometry = new THREE.BoxGeometry(size, height, size * 0.6);
+                const boxMaterial = new THREE.MeshStandardMaterial({ 
+                    color: new THREE.Color(0.4 + Math.random() * 0.2, 0.4 + Math.random() * 0.2, 0.6 + Math.random() * 0.2),
+                    roughness: 0.7
+                });
+                const box = new THREE.Mesh(boxGeometry, boxMaterial);
+                
+                // Position randomly but not too close to player start
+                let x, z;
+                do {
+                    x = -25 + Math.random() * 50;
+                    z = -25 + Math.random() * 50;
+                } while (Math.sqrt(x*x + (z-10)*(z-10)) < 8); // Keep away from player start
+                
+                box.position.set(x, height/2, z);
+                box.castShadow = true;
+                box.receiveShadow = true;
+                scene.add(box);
+                
+                // Add to obstacles array
+                obstacles.push({
+                    mesh: box,
+                    position: box.position.clone(),
+                    width: size,
+                    height: height,
+                    depth: size * 0.6
+                });
+                
+                // Add a pillow to some of the rest areas
+                if (Math.random() > 0.5) {
+                    const pillowGeometry = new THREE.BoxGeometry(size * 0.3, height * 0.5, size * 0.2);
+                    const pillowMaterial = new THREE.MeshStandardMaterial({ 
+                        color: new THREE.Color(0.7 + Math.random() * 0.2, 0.7 + Math.random() * 0.2, 0.8 + Math.random() * 0.2),
+                        roughness: 0.5
+                    });
+                    const pillow = new THREE.Mesh(pillowGeometry, pillowMaterial);
+                    
+                    // Position on top of the rest area
+                    pillow.position.set(
+                        x + (size * 0.3), 
+                        height + (height * 0.25), 
+                        z - (size * 0.15)
+                    );
+                    
+                    pillow.castShadow = true;
+                    pillow.receiveShadow = true;
+                    scene.add(pillow);
+                }
+            }
+            
+            // Create some round cushions/meditation spots
+            for (let i = 0; i < 6; i++) {
+                const radius = 1.5 + Math.random() * 1;
+                const height = 0.4 + Math.random() * 0.3;
+                
+                // Create cushion
+                const cushionGeometry = new THREE.CylinderGeometry(radius, radius, height, 16);
+                const cushionMaterial = new THREE.MeshStandardMaterial({ 
+                    color: new THREE.Color(0.7 + Math.random() * 0.2, 0.5 + Math.random() * 0.2, 0.3 + Math.random() * 0.2),
+                    roughness: 0.6
+                });
+                const cushion = new THREE.Mesh(cushionGeometry, cushionMaterial);
+                
+                // Position randomly but not too close to player start
+                let x, z;
+                do {
+                    x = -25 + Math.random() * 50;
+                    z = -25 + Math.random() * 50;
+                } while (Math.sqrt(x*x + (z-10)*(z-10)) < 8); // Keep away from player start
+                
+                cushion.position.set(x, height/2, z);
+                cushion.castShadow = true;
+                cushion.receiveShadow = true;
+                scene.add(cushion);
+                
+                // Add to obstacles array
+                obstacles.push({
+                    mesh: cushion,
+                    position: cushion.position.clone(),
+                    radius: radius,
+                    height: height,
+                    isColumn: true
+                });
+            }
+            
+            // Create some trees to represent growth and natural cycles
+            for (let i = 0; i < 10; i++) {
+                const trunkHeight = 4 + Math.random() * 6;
+                const trunkRadius = 0.5 + Math.random() * 0.3;
+                
+                // Create trunk
+                const trunkGeometry = new THREE.CylinderGeometry(trunkRadius, trunkRadius * 1.2, trunkHeight, 8);
+                const trunkMaterial = new THREE.MeshStandardMaterial({ 
+                    color: new THREE.Color(0.5, 0.35, 0.2),
+                    roughness: 0.9
+                });
+                const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+                
+                // Position trees around the perimeter
+                const angle = (i / 10) * Math.PI * 2;
+                const distance = 35 + Math.random() * 15;
+                const x = Math.cos(angle) * distance;
+                const z = Math.sin(angle) * distance;
+                
+                trunk.position.set(x, trunkHeight/2, z);
+                trunk.castShadow = true;
+                trunk.receiveShadow = true;
+                scene.add(trunk);
+                
+                // Create foliage (leafy top)
+                const foliageRadius = 2 + Math.random() * 2;
+                const foliageGeometry = new THREE.SphereGeometry(foliageRadius, 8, 8);
+                const foliageColor = Math.random() > 0.3 ? 
+                    new THREE.Color(0.2, 0.6 + Math.random() * 0.3, 0.2) : 
+                    new THREE.Color(0.5 + Math.random() * 0.2, 0.3 + Math.random() * 0.2, 0.5);
+                const foliageMaterial = new THREE.MeshStandardMaterial({ 
+                    color: foliageColor,
+                    roughness: 0.8
+                });
+                const foliage = new THREE.Mesh(foliageGeometry, foliageMaterial);
+                
+                foliage.position.set(x, trunkHeight + foliageRadius * 0.7, z);
+                foliage.castShadow = true;
+                scene.add(foliage);
+                
+                // Add trunk to obstacles array
+                obstacles.push({
+                    mesh: trunk,
+                    position: trunk.position.clone(),
+                    radius: trunkRadius,
+                    height: trunkHeight,
+                    isColumn: true
+                });
+            }
+            
+            // Create some floating cloud-like platforms
+            for (let i = 0; i < 5; i++) {
+                const platformWidth = 6 + Math.random() * 8;
+                const platformDepth = 6 + Math.random() * 8;
+                const platformGeometry = new THREE.BoxGeometry(platformWidth, 0.5, platformDepth);
+                const platformMaterial = new THREE.MeshStandardMaterial({ 
+                    color: new THREE.Color(0.9, 0.9, 0.9),
+                    roughness: 0.3,
+                    transparent: true,
+                    opacity: 0.7
+                });
+                const platform = new THREE.Mesh(platformGeometry, platformMaterial);
+                
+                // Position platforms around the play area
+                platform.position.set(
+                    -20 + Math.random() * 40,
+                    8 + Math.random() * 10,
+                    -20 + Math.random() * 40
+                );
+                
+                platform.castShadow = true;
+                platform.receiveShadow = true;
+                scene.add(platform);
+            }
+            
+            // Add a central fountain or pool - representing renewal and flow
+            const poolRadius = 6;
+            const poolHeight = 0.5;
+            const poolGeometry = new THREE.CylinderGeometry(poolRadius, poolRadius, poolHeight, 32);
+            const poolMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x3399cc,
+                roughness: 0.2,
+                metalness: 0.8
+            });
+            const pool = new THREE.Mesh(poolGeometry, poolMaterial);
+            pool.position.set(0, poolHeight/2, -5);
+            pool.receiveShadow = true;
+            scene.add(pool);
+            
+            // Add fountain rim
+            const rimRadius = poolRadius + 0.5;
+            const rimHeight = 0.3;
+            const rimGeometry = new THREE.CylinderGeometry(rimRadius, rimRadius, rimHeight, 32);
+            const rimMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0xaaaaaa,
+                roughness: 0.8
+            });
+            const rim = new THREE.Mesh(rimGeometry, rimMaterial);
+            rim.position.set(0, rimHeight/2, -5);
+            rim.receiveShadow = true;
+            scene.add(rim);
+            
+            // Add to obstacles array
+            obstacles.push({
+                mesh: rim,
+                position: rim.position.clone(),
+                radius: rimRadius,
+                height: rimHeight,
+                isColumn: true
+            });
+        }
+
+        // Create a negative thought entity with updated spawn logic
+        function createNegativeThought() {
+            const thoughtIndex = Math.floor(Math.random() * negativeThoughts.length);
+            const thoughtTemplate = negativeThoughts[thoughtIndex];
+            
+            // Scale health based on level and difficulty
+            const levelConfig = levelConfigs[Math.min(gameState.level - 1, levelConfigs.length - 1)];
+            const health = levelConfig.thoughtHealth * difficultySettings[gameState.difficulty].healthMultiplier;
+            
+            // Create thought geometry and material
+            const thoughtGeometry = new THREE.SphereGeometry(1, 16, 16);
+            const thoughtMaterial = new THREE.MeshStandardMaterial({ 
+                color: thoughtTemplate.color,
+                roughness: 0.7,
+                emissive: thoughtTemplate.color,
+                emissiveIntensity: 0.3
+            });
+            const thoughtMesh = new THREE.Mesh(thoughtGeometry, thoughtMaterial);
+            
+            // Apply slight random deformation for uniqueness
+            if (Math.random() < 0.5) {
+                thoughtMesh.scale.set(
+                    1 + (Math.random() - 0.5) * 0.3,
+                    1 + (Math.random() - 0.5) * 0.3,
+                    1 + (Math.random() - 0.5) * 0.3
+                );
+            }
+            
+            // Add text label (sprite)
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 512;
+            canvas.height = 256;
+            context.fillStyle = 'rgba(0, 0, 0, 0.8)';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            context.font = '28px Arial';
+            context.fillStyle = '#ffffff';
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            
+            // Word wrap the text
+            const words = thoughtTemplate.text.split(' ');
+            let line = '';
+            let y = 128;
+            const lineHeight = 30;
+            let lines = 0;
+            
+            for (let i = 0; i < words.length; i++) {
+                const testLine = line + words[i] + ' ';
+                const metrics = context.measureText(testLine);
+                if (metrics.width > 480 && i > 0) {
+                    context.fillText(line, 256, y - (lineHeight * lines / 2) + (lineHeight * lines));
+                    line = words[i] + ' ';
+                    lines++;
+                } else {
+                    line = testLine;
+                }
+            }
+            context.fillText(line, 256, y - (lineHeight * lines / 2) + (lineHeight * lines));
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+            const sprite = new THREE.Sprite(spriteMaterial);
+            sprite.scale.set(4, 2, 1);
+            sprite.position.y = 2;
+            thoughtMesh.add(sprite);
+            
+            // Position the thought using one of several spawn methods
+            const spawnMethod = Math.floor(Math.random() * 3); // 3 different spawn methods
+            
+            if (spawnMethod === 0) {
+                // Method 1: Random point on circle around player
+                const angle = Math.random() * Math.PI * 2;
+                const radius = 30 + Math.random() * 5;
+                thoughtMesh.position.set(
+                    Math.cos(angle) * radius,
+                    1 + Math.random() * 3,
+                    Math.sin(angle) * radius
+                );
+            } else if (spawnMethod === 1) {
+                // Method 2: Random high point (falling from above)
+                const angle = Math.random() * Math.PI * 2;
+                const radius = 10 + Math.random() * 20;
+                thoughtMesh.position.set(
+                    Math.cos(angle) * radius,
+                    10 + Math.random() * 10, // Spawns high above
+                    Math.sin(angle) * radius
+                );
+            } else {
+                // Method 3: Fixed spawn points in corners
+                const corners = [
+                    new THREE.Vector3(-25, 1 + Math.random() * 3, -25),
+                    new THREE.Vector3(25, 1 + Math.random() * 3, -25),
+                    new THREE.Vector3(-25, 1 + Math.random() * 3, 25),
+                    new THREE.Vector3(25, 1 + Math.random() * 3, 25)
+                ];
+                thoughtMesh.position.copy(corners[Math.floor(Math.random() * corners.length)]);
+            }
+            
+            thoughtMesh.castShadow = true;
+            scene.add(thoughtMesh);
+            
+            // Return thought entity with all properties
+            return {
+                mesh: thoughtMesh,
+                text: thoughtTemplate.text,
+                correctAmmo: thoughtTemplate.correctAmmo,
+                health: health,
+                maxHealth: health,
+                speed: levelConfig.speed * difficultySettings[gameState.difficulty].speedMultiplier,
+                stunned: false,
+                stunTimer: 0,
+                movementState: null // Will be initialized in the update function
+            };
+        }
+
+        // Fire a positive resource (projectile) with nicer trails
+        function fireProjectile() {
+            const projectileGeometry = new THREE.SphereGeometry(0.3, 16, 16);
+            const projectileMaterial = new THREE.MeshStandardMaterial({ 
+                color: positiveResources[gameState.selectedAmmo].color,
+                emissive: positiveResources[gameState.selectedAmmo].color,
+                emissiveIntensity: 0.7
+            });
+            const projectileMesh = new THREE.Mesh(projectileGeometry, projectileMaterial);
+            
+            // Position at player camera and facing direction
+            projectileMesh.position.copy(player.position);
+            
+            // Direction from camera
+            const direction = new THREE.Vector3(0, 0, -1);
+            direction.applyQuaternion(camera.quaternion);
+            direction.normalize();
+            
+            // Add projectile to scene
+            scene.add(projectileMesh);
+            
+            // Create trail effect (small particles behind the projectile)
+            const trail = [];
+            for (let i = 0; i < 5; i++) {
+                const trailGeometry = new THREE.SphereGeometry(0.15 - i * 0.02, 8, 8);
+                const trailMaterial = new THREE.MeshBasicMaterial({ 
+                    color: positiveResources[gameState.selectedAmmo].color,
+                    transparent: true,
+                    opacity: 0.7 - i * 0.1
+                });
+                const trailPart = new THREE.Mesh(trailGeometry, trailMaterial);
+                trailPart.position.copy(projectileMesh.position);
+                scene.add(trailPart);
+                trail.push(trailPart);
+            }
+            
+            // Play shooting sound
+            playSound('shoot');
+            
+            // Return projectile with properties
+            return {
+                mesh: projectileMesh,
+                direction: direction,
+                speed: 1,
+                ammoType: gameState.selectedAmmo,
+                lifetime: 0,
+                trail: trail
+            };
+        }
+
+        // Play sound effects
+        function playSound(type) {
+            // Simple audio feedback (can be expanded with actual sound files)
+            const context = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = context.createOscillator();
+            const gainNode = context.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(context.destination);
+            
+            switch(type) {
+                case 'shoot':
+                    oscillator.type = 'sine';
+                    oscillator.frequency.value = 440;
+                    gainNode.gain.value = 0.1;
+                    oscillator.start();
+                    setTimeout(() => {
+                        oscillator.stop();
+                    }, 100);
+                    break;
+                case 'hit':
+                    oscillator.type = 'square';
+                    oscillator.frequency.value = 220;
+                    gainNode.gain.value = 0.1;
+                    oscillator.start();
+                    setTimeout(() => {
+                        oscillator.stop();
+                    }, 200);
+                    break;
+                case 'transform':
+                    oscillator.type = 'sine';
+                    oscillator.frequency.value = 880;
+                    gainNode.gain.value = 0.1;
+                    oscillator.start();
+                    
+                    // Add a frequency sweep for transformation effect
+                    oscillator.frequency.setValueAtTime(880, context.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(440, context.currentTime + 0.5);
+                    
+                    setTimeout(() => {
+                        oscillator.stop();
+                    }, 500);
+                    break;
+                case 'damage':
+                    oscillator.type = 'sawtooth';
+                    oscillator.frequency.value = 110;
+                    gainNode.gain.value = 0.1;
+                    oscillator.start();
+                    setTimeout(() => {
+                        oscillator.stop();
+                    }, 300);
+                    break;
+                case 'levelComplete':
+                    oscillator.type = 'sine';
+                    oscillator.frequency.value = 440;
+                    gainNode.gain.value = 0.1;
+                    oscillator.start();
+                    
+                    // Play a triumphant arpeggio
+                    oscillator.frequency.setValueAtTime(440, context.currentTime);
+                    oscillator.frequency.setValueAtTime(554, context.currentTime + 0.2);
+                    oscillator.frequency.setValueAtTime(659, context.currentTime + 0.4);
+                    oscillator.frequency.setValueAtTime(880, context.currentTime + 0.6);
+                    
+                    setTimeout(() => {
+                        oscillator.stop();
+                    }, 800);
+                    break;
+            }
+        }
+
+        // Create a particle effect
+        function createParticleEffect(position, color, count = 20) {
+            for (let i = 0; i < count; i++) {
+                const particleGeometry = new THREE.SphereGeometry(0.1, 8, 8);
+                const particleMaterial = new THREE.MeshBasicMaterial({ color: color });
+                const particle = new THREE.Mesh(particleGeometry, particleMaterial);
+                
+                // Position at event location
+                particle.position.copy(position);
+                
+                // Random direction
+                const direction = new THREE.Vector3(
+                    Math.random() * 2 - 1,
+                    Math.random() * 2 - 1,
+                    Math.random() * 2 - 1
+                );
+                direction.normalize();
+                
+                // Add to scene temporarily
+                scene.add(particle);
+                
+                // Set timeout to remove after animation
+                setTimeout(() => {
+                    scene.remove(particle);
+                    particleGeometry.dispose();
+                    particleMaterial.dispose();
+                }, 1000);
+                
+                // Animate outward movement
+                const speed = 0.05 + Math.random() * 0.1;
+                const animate = () => {
+                    particle.position.add(direction.clone().multiplyScalar(speed));
+                    particle.scale.multiplyScalar(0.95); // Shrink over time
+                    
+                    if (particle.scale.x > 0.01) {
+                        requestAnimationFrame(animate);
+                    }
+                };
+                animate();
+            }
+        }
+
+        // Handle window resize
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // Handle keyboard input (keydown)
+        function onKeyDown(event) {
+            keys[event.code] = true;
+            
+            // Debugging key presses
+            console.log("Key pressed:", event.code);
+            
+            // Handle number keys for ammo selection
+            if (event.code.startsWith('Digit') && event.code.length === 6) {
+                const ammoIndex = parseInt(event.code.charAt(5)) - 1;
+                if (ammoIndex >= 0 && ammoIndex < positiveResources.length) {
+                    selectAmmo(ammoIndex);
+                }
+            }
+        }
+
+        // Handle keyboard input (keyup)
+        function onKeyUp(event) {
+            keys[event.code] = false;
+        }
+
+        // Handle mouse click
+        function onMouseDown(event) {
+            if (event.button === 0 && gameState.playing && pointerLocked) { // Left click
+                projectiles.push(fireProjectile());
+            }
+        }
+
+        // Handle mouse movement
+        function onMouseMove(event) {
+            if (pointerLocked) {
+                // Update camera rotation based on mouse movement
+                camera.rotation.y -= event.movementX * 0.002;
+                
+                // Limit vertical rotation to prevent camera flipping
+                camera.rotation.x -= event.movementY * 0.002;
+                camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
+            }
+        }
+
+        // Select ammo type
+        function selectAmmo(index) {
+            gameState.selectedAmmo = parseInt(index);
+            
+            // Update UI
+            const ammoTypes = document.getElementsByClassName('ammoType');
+            for (let i = 0; i < ammoTypes.length; i++) {
+                if (i === gameState.selectedAmmo) {
+                    ammoTypes[i].classList.add('selected');
+                } else {
+                    ammoTypes[i].classList.remove('selected');
+                }
+            }
+        }
+
+        // Start the game
+        function startGame(difficulty) {
+            // Set game state
+            gameState.playing = true;
+            gameState.score = 0;
+            gameState.level = 1;
+            gameState.difficulty = difficulty;
+            gameState.selectedAmmo = 0;
+            gameState.thoughtsCleared = 0;
+            
+            // Set health based on difficulty
+            gameState.health = 100 * difficultySettings[difficulty].playerHealthMultiplier;
+            
+            // Clear any existing entities
+            for (const thought of negativeThoughtEntities) {
+                scene.remove(thought.mesh);
+            }
+            negativeThoughtEntities = [];
+            
+            for (const projectile of projectiles) {
+                scene.remove(projectile.mesh);
+            }
+            projectiles = [];
+            
+            // Reset player position
+            player.position.set(0, 1.6, 10);
+            player.velocity.set(0, 0, 0);
+            
+            // Update UI
+            updateHUD();
+            
+            // Hide menus
+            document.getElementById('gameMenu').style.display = 'none';
+            document.getElementById('levelComplete').style.display = 'none';
+            document.getElementById('gameOver').style.display = 'none';
+            
+            // Start level
+            startLevel(gameState.level);
+            
+            // Request pointer lock
+            renderer.domElement.requestPointerLock();
+        }
+
+        // Start a level
+        function startLevel(level) {
+            // Set game state
+            gameState.level = level;
+            gameState.thoughtsCleared = 0;
+            
+            // Clear any existing thought entities
+            for (const thought of negativeThoughtEntities) {
+                scene.remove(thought.mesh);
+            }
+            negativeThoughtEntities = [];
+            
+            // Determine level configuration (capped at max level config)
+            const levelConfig = levelConfigs[Math.min(level - 1, levelConfigs.length - 1)];
+            gameState.totalThoughts = levelConfig.numThoughts;
+            
+            // Create new thought entities
+            for (let i = 0; i < levelConfig.numThoughts; i++) {
+                negativeThoughtEntities.push(createNegativeThought());
+            }
+            
+            // Update UI
+            updateHUD();
+            document.getElementById('info').textContent = `Level ${level} - Honoring Your Energy`;
+        }
+
+        // Start the next level
+        function startNextLevel() {
+            document.getElementById('levelComplete').style.display = 'none';
+            startLevel(gameState.level + 1);
+            
+            // Re-enable gameplay
+            gameState.playing = true;
+            
+            // Request pointer lock with a slight delay to ensure UI is updated first
+            setTimeout(() => {
+                renderer.domElement.requestPointerLock();
+            }, 100);
+        }
+
+        // Show the main menu
+        function showMainMenu() {
+            gameState.playing = false;
+            
+            // Show menu
+            document.getElementById('gameMenu').style.display = 'block';
+            document.getElementById('gameOver').style.display = 'none';
+            document.getElementById('levelComplete').style.display = 'none';
+            
+            // Exit pointer lock
+            document.exitPointerLock();
+        }
+
+        // Update HUD elements
+        function updateHUD() {
+            document.getElementById('score').textContent = `Score: ${gameState.score}`;
+            document.getElementById('health').textContent = `Health: ${Math.floor(gameState.health)}`;
+            document.getElementById('level').textContent = `Level: ${gameState.level}`;
+        }
+
+        // Show level complete screen
+        function showLevelComplete() {
+            // Temporarily pause gameplay
+            gameState.playing = false;
+            
+            document.getElementById('levelComplete').style.display = 'block';
+            document.getElementById('levelComplete').className = 'fadeIn';
+            document.getElementById('thoughtsCleared').textContent = gameState.thoughtsCleared;
+            
+            // Exit pointer lock
+            document.exitPointerLock();
+            
+            // Reset player velocity to prevent continued movement in next level
+            player.velocity.set(0, 0, 0);
+            
+            // Play level complete sound
+            playSound('levelComplete');
+        }
+
+        // Show game over screen
+        function showGameOver() {
+            document.getElementById('gameOver').style.display = 'block';
+            document.getElementById('gameOver').className = 'fadeIn shake';
+            document.getElementById('finalScore').textContent = `Final Score: ${gameState.score}`;
+            
+            // Exit pointer lock
+            document.exitPointerLock();
+        }
+
+        // Animation loop
+        function animate(time) {
+            requestAnimationFrame(animate);
+            
+            // Calculate delta time
+            const deltaTime = (time - lastTime) / 16.67; // Normalize to ~60fps
+            lastTime = time;
+            
+            // Skip if delta time is too high (e.g. after tab switch)
+            if (deltaTime > 5) return;
+            
+            // Update game if playing
+            if (gameState.playing) {
+                // Debugging - print active movement keys
+                if (keys['KeyW'] || keys['KeyA'] || keys['KeyS'] || keys['KeyD'] || 
+                    keys['ArrowUp'] || keys['ArrowDown'] || keys['ArrowLeft'] || keys['ArrowRight']) {
+                    const activeKeys = [];
+                    if (keys['KeyW'] || keys['ArrowUp']) activeKeys.push('W/Up');
+                    if (keys['KeyS'] || keys['ArrowDown']) activeKeys.push('S/Down');
+                    if (keys['KeyA'] || keys['ArrowLeft']) activeKeys.push('A/Left');
+                    if (keys['KeyD'] || keys['ArrowRight']) activeKeys.push('D/Right');
+                }
+                
+                updatePlayer(deltaTime);
+                updateProjectiles(deltaTime);
+                updateNegativeThoughts(deltaTime);
+                checkCollisions();
+                checkGameConditions();
+            }
+            
+            // Render scene
+            renderer.render(scene, camera);
+        }
+
+        // Update player position and camera with simple collision detection
+        function updatePlayer(deltaTime) {
+            // Limit delta time to prevent huge jumps after lag
+            const clampedDelta = Math.min(deltaTime, 5);
+            
+            // Movement speed
+            const moveSpeed = player.speed * clampedDelta;
+            
+            // Get basic movement direction
+            let moveX = 0;
+            let moveZ = 0;
+            
+            // Direct keyboard mapping
+            if (keys['KeyW'] || keys['ArrowUp']) moveZ -= moveSpeed;
+            if (keys['KeyS'] || keys['ArrowDown']) moveZ += moveSpeed;
+            if (keys['KeyA'] || keys['ArrowLeft']) moveX -= moveSpeed;
+            if (keys['KeyD'] || keys['ArrowRight']) moveX += moveSpeed;
+            
+            // Apply camera direction to movement
+            if (moveX !== 0 || moveZ !== 0) {
+                // Get forward and right vectors based on camera rotation
+                const forward = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), camera.rotation.y);
+                const right = new THREE.Vector3(1, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), camera.rotation.y);
+                
+                // Calculate direction
+                const direction = new THREE.Vector3(0, 0, 0);
+                direction.add(forward.multiplyScalar(-moveZ));
+                direction.add(right.multiplyScalar(moveX));
+                
+                // Normalize only if moving in multiple directions
+                if (moveX !== 0 && moveZ !== 0) {
+                    direction.normalize();
+                    direction.multiplyScalar(moveSpeed);
+                }
+                
+                // Store current position before moving
+                const oldPosition = player.position.clone();
+                
+                // Apply movement to a temporary position
+                const newPosition = oldPosition.clone();
+                newPosition.x += direction.x;
+                newPosition.z += direction.z;
+                
+                // Check for collisions with obstacles
+                let collision = false;
+                for (const obstacle of obstacles) {
+                    if (obstacle.isColumn) {
+                        // Cylinder collision
+                        const dx = obstacle.position.x - newPosition.x;
+                        const dz = obstacle.position.z - newPosition.z;
+                        const distance = Math.sqrt(dx * dx + dz * dz);
+                        
+                        if (distance < obstacle.radius + 1) { // 1 is player radius
+                            collision = true;
+                            break;
+                        }
+                    } else {
+                        // Box collision (simple AABB)
+                        const halfWidth = obstacle.width / 2;
+                        const halfDepth = obstacle.depth / 2;
+                        
+                        if (
+                            newPosition.x > obstacle.position.x - halfWidth - 1 &&
+                            newPosition.x < obstacle.position.x + halfWidth + 1 &&
+                            newPosition.z > obstacle.position.z - halfDepth - 1 &&
+                            newPosition.z < obstacle.position.z + halfDepth + 1
+                        ) {
+                            collision = true;
+                            break;
+                        }
+                    }
+                }
+                
+                // If no collision, apply the movement
+                if (!collision) {
+                    player.position.copy(newPosition);
+                }
+            }
+            
+            // Simple gravity
+            if (!player.onGround) {
+                player.velocity.y -= 0.01 * clampedDelta;
+                player.position.y += player.velocity.y;
+            }
+            
+            // Jump
+            if (player.onGround && keys['Space']) {
+                player.velocity.y = player.jumpForce * clampedDelta;
+                player.onGround = false;
+                player.position.y += player.velocity.y;
+            }
+            
+            // Floor collision
+            if (player.position.y < 1.6) {
+                player.position.y = 1.6;
+                player.velocity.y = 0;
+                player.onGround = true;
+            }
+            
+            // Update camera position to follow player
+            camera.position.copy(player.position);
+        }
+        
+        // Check for collision with obstacles (optimized version)
+        function checkObstacleCollision(x1, y1, z1, x2, y2, z2, radius) {
+            // Simplified collision detection with obstacles - only check nearby obstacles
+            const playerPos = new THREE.Vector3(x2, y2, z2);
+            const checkDistance = 5; // Only check obstacles within this distance
+            
+            for (const obstacle of obstacles) {
+                // Quick distance check first to avoid unnecessary calculations
+                const distance = playerPos.distanceTo(obstacle.position);
+                if (distance > checkDistance + obstacle.width/2) continue;
+                
+                if (obstacle.isColumn) {
+                    // For cylindrical obstacles - simplified check
+                    const dx = obstacle.position.x - x2;
+                    const dz = obstacle.position.z - z2;
+                    const horizontalDist = Math.sqrt(dx * dx + dz * dz);
+                    
+                    // Check height as well (y-axis)
+                    const withinHeight = y2 >= obstacle.position.y - obstacle.height/2 && 
+                                         y2 <= obstacle.position.y + obstacle.height/2;
+                                         
+                    if (horizontalDist < obstacle.radius + radius && withinHeight) {
+                        return true;
+                    }
+                } else {
+                    // For box obstacles - simplified AABB check
+                    const halfWidth = obstacle.width / 2;
+                    const halfDepth = obstacle.depth / 2;
+                    
+                    // Simple box check without rotation for performance
+                    const withinX = Math.abs(x2 - obstacle.position.x) < halfWidth + radius;
+                    const withinZ = Math.abs(z2 - obstacle.position.z) < halfDepth + radius;
+                    const withinY = y2 >= obstacle.position.y - obstacle.height/2 && 
+                                   y2 <= obstacle.position.y + obstacle.height/2;
+                                   
+                    if (withinX && withinZ && withinY) {
+                        return true;
+                    }
+                }
+            }
+            
+            return false;
+        }
+
+        // Update projectiles with trail effects
+        function updateProjectiles(deltaTime) {
+            for (let i = projectiles.length - 1; i >= 0; i--) {
+                const projectile = projectiles[i];
+                
+                // Move projectile
+                projectile.mesh.position.add(
+                    projectile.direction.clone().multiplyScalar(projectile.speed * deltaTime)
+                );
+                
+                // Update trail particles
+                if (projectile.trail) {
+                    for (let j = projectile.trail.length - 1; j > 0; j--) {
+                        // Each trail segment follows the one in front of it
+                        projectile.trail[j].position.copy(projectile.trail[j-1].position);
+                    }
+                    // First trail segment follows the projectile
+                    projectile.trail[0].position.copy(projectile.mesh.position);
+                }
+                
+                // Increase lifetime counter
+                projectile.lifetime += deltaTime;
+                
+                // Remove projectile if it's too old or out of bounds
+                if (projectile.lifetime > 100 || 
+                    projectile.mesh.position.length() > 100) {
+                    scene.remove(projectile.mesh);
+                    
+                    // Remove trail particles
+                    if (projectile.trail) {
+                        for (const trailPart of projectile.trail) {
+                            scene.remove(trailPart);
+                        }
+                    }
+                    
+                    projectiles.splice(i, 1);
+                }
+            }
+        }
+
+        // Update negative thought entities with smooth randomized movement
+        function updateNegativeThoughts(deltaTime) {
+            for (const thought of negativeThoughtEntities) {
+                if (thought.stunned) {
+                    // Decrease stun timer
+                    thought.stunTimer -= deltaTime;
+                    if (thought.stunTimer <= 0) {
+                        thought.stunned = false;
+                    }
+                    continue;
+                }
+                
+                // Initialize movement state if it doesn't exist
+                if (!thought.movementState) {
+                    thought.movementState = {
+                        // Random direction vector
+                        randomDirection: new THREE.Vector3(
+                            Math.random() * 2 - 1,
+                            0,
+                            Math.random() * 2 - 1
+                        ).normalize(),
+                        
+                        // Current movement direction (will be interpolated)
+                        currentDirection: new THREE.Vector3(),
+                        
+                        // Timers for behavior changes
+                        behaviorTimer: Math.random() * 200 + 100,
+                        
+                        // Current behavior (chase or wander)
+                        behavior: Math.random() < 0.5 ? 'chase' : 'wander',
+                        
+                        // Vertical movement
+                        verticalMovement: 0,
+                        verticalTimer: 0,
+                        
+                        // Rotation smoothing
+                        targetRotation: new THREE.Quaternion(),
+                        currentRotation: new THREE.Quaternion()
+                    };
+                    
+                    // Initialize current direction
+                    thought.movementState.currentDirection.subVectors(
+                        player.position, 
+                        thought.mesh.position
+                    ).normalize();
+                }
+                
+                const state = thought.movementState;
+                
+                // Update behavior timer
+                state.behaviorTimer -= deltaTime;
+                if (state.behaviorTimer <= 0) {
+                    // Switch behavior with smooth transition
+                    state.behavior = state.behavior === 'chase' ? 'wander' : 'chase';
+                    state.behaviorTimer = Math.random() * 200 + 100;
+                    
+                    // Generate new random direction when switching to wander
+                    if (state.behavior === 'wander') {
+                        state.randomDirection.set(
+                            Math.random() * 2 - 1,
+                            0,
+                            Math.random() * 2 - 1
+                        ).normalize();
+                    }
+                }
+                
+                // Calculate direction to player
+                const directionToPlayer = new THREE.Vector3()
+                    .subVectors(player.position, thought.mesh.position)
+                    .normalize();
+                
+                // Determine target direction based on current behavior
+                let targetDirection = new THREE.Vector3();
+                
+                if (state.behavior === 'chase') {
+                    // Chase behavior: mainly follow player
+                    targetDirection.copy(directionToPlayer);
+                    
+                    // Add very slight randomness for natural movement
+                    if (Math.random() < 0.05) { // Only 5% chance to adjust per frame
+                        const randomComponent = new THREE.Vector3(
+                            (Math.random() - 0.5) * 0.1, // Very small random adjustments
+                            0, 
+                            (Math.random() - 0.5) * 0.1
+                        );
+                        targetDirection.add(randomComponent).normalize();
+                    }
+                } else {
+                    // Wander behavior: mostly random with slight player influence
+                    targetDirection.copy(state.randomDirection);
+                    
+                    // Slightly influenced by player position (only 10%)
+                    targetDirection.lerp(directionToPlayer, 0.1);
+                    targetDirection.normalize();
+                    
+                    // Occasionally generate new random direction
+                    if (Math.random() < 0.01) { // 1% chance per frame
+                        const newDirection = new THREE.Vector3(
+                            Math.random() * 2 - 1,
+                            0,
+                            Math.random() * 2 - 1
+                        ).normalize();
+                        
+                        // Smoothly transition to new direction
+                        state.randomDirection.lerp(newDirection, 0.1);
+                        state.randomDirection.normalize();
+                    }
+                }
+                
+                // Check for obstacles
+                let obstacleInWay = false;
+                for (const obstacle of obstacles) {
+                    // Only check obstacles that are relatively close
+                    const dx = obstacle.position.x - thought.mesh.position.x;
+                    const dz = obstacle.position.z - thought.mesh.position.z;
+                    const distanceToObstacle = Math.sqrt(dx*dx + dz*dz);
+                    
+                    if (distanceToObstacle < 5) {
+                        // Check if obstacle is in front
+                        const dotProduct = dx * targetDirection.x + dz * targetDirection.z;
+                        
+                        if (dotProduct > 0 && distanceToObstacle < 3) {
+                            obstacleInWay = true;
+                            break;
+                        }
+                    }
+                }
+                
+                // Handle obstacle avoidance
+                if (obstacleInWay) {
+                    // Compute avoidance direction (perpendicular to current direction)
+                    const avoidanceDirection = new THREE.Vector3(
+                        targetDirection.z,
+                        0,
+                        -targetDirection.x
+                    );
+                    
+                    // Blend with current direction for smoother turns
+                    targetDirection.lerp(avoidanceDirection, 0.3);
+                    targetDirection.normalize();
+                }
+                
+                // Smoothly interpolate current direction toward target direction
+                state.currentDirection.lerp(targetDirection, 0.05);
+                state.currentDirection.normalize();
+                
+                // Handle vertical movement
+                state.verticalTimer -= deltaTime;
+                
+                // Apply gravity effect
+                if (thought.mesh.position.y > 1) {
+                    // Gradually decrease vertical movement for smooth landing
+                    state.verticalMovement -= 0.001 * deltaTime;
+                    thought.mesh.position.y += state.verticalMovement * deltaTime;
+                } else {
+                    thought.mesh.position.y = 1;
+                    state.verticalMovement = 0;
+                }
+                
+                // Occasionally jump/float
+                if (state.verticalTimer <= 0 && Math.random() < 0.005 && thought.mesh.position.y <= 1.1) {
+                    state.verticalMovement = 0.03 + Math.random() * 0.02;
+                    state.verticalTimer = 100 + Math.random() * 200;
+                }
+                
+                // Move thought in the calculated direction
+                thought.mesh.position.add(
+                    state.currentDirection.clone().multiplyScalar(thought.speed * deltaTime)
+                );
+                
+                // Smooth rotation
+                // Create a rotation that looks in the movement direction
+                const lookDirection = new THREE.Vector3().copy(state.currentDirection);
+                lookDirection.y = 0; // Keep level
+                
+                // Create target quaternion from the direction
+                const lookTarget = new THREE.Vector3();
+                lookTarget.copy(thought.mesh.position).add(lookDirection);
+                
+                // Create temporary object to get quaternion
+                const tempObj = new THREE.Object3D();
+                tempObj.position.copy(thought.mesh.position);
+                tempObj.lookAt(lookTarget);
+                state.targetRotation.copy(tempObj.quaternion);
+                
+                // Smoothly interpolate rotation
+                thought.mesh.quaternion.slerp(state.targetRotation, 0.05);
+                
+                // If too close to player, cause damage
+                const distanceToPlayer = thought.mesh.position.distanceTo(player.position);
+                if (distanceToPlayer < 2) {
+                    gameState.health -= 0.3 * deltaTime;
+                    updateHUD();
+                    
+                    // Visual feedback (red flash)
+                    const crosshair = document.getElementById('crosshair');
+                    crosshair.style.color = 'red';
+                    setTimeout(() => {
+                        crosshair.style.color = 'white';
+                    }, 100);
+                    
+                    // Sound feedback
+                    if (Math.random() < 0.03) {
+                        playSound('damage');
+                    }
+                }
+            }
+        }
+        
+        // Calculate direction considering obstacles (simplified for performance)
+        function calculatePathDirection(fromPosition, toPosition) {
+            // Basic direct path calculation
+            const directDirection = new THREE.Vector3()
+                .subVectors(toPosition, fromPosition)
+                .normalize();
+            
+            // Simple raycast ahead
+            const testDistance = 2; // Look 2 units ahead
+            const testPoint = fromPosition.clone().add(
+                directDirection.clone().multiplyScalar(testDistance)
+            );
+            
+            // If no obstacle, use direct path
+            if (!checkObstacleCollision(
+                fromPosition.x, fromPosition.y, fromPosition.z,
+                testPoint.x, testPoint.y, testPoint.z,
+                0.5 // Thought radius
+            )) {
+                return directDirection;
+            }
+            
+            // If obstacle ahead, try to go around or over
+            // 50% chance to try going around, 50% chance to try going over
+            if (Math.random() < 0.5) {
+                // Try going to the side (randomized)
+                const sideDir = Math.random() < 0.5 ? 
+                    new THREE.Vector3(directDirection.z, 0, -directDirection.x) : // Right
+                    new THREE.Vector3(-directDirection.z, 0, directDirection.x);  // Left
+                
+                return sideDir.normalize();
+            } else {
+                // Try going over (add upward component)
+                return new THREE.Vector3(
+                    directDirection.x * 0.7,
+                    0.7, // Strong upward component
+                    directDirection.z * 0.7
+                ).normalize();
+            }
+        }
+
+        // Check for collisions between projectiles and thoughts
+        function checkCollisions() {
+            for (let i = projectiles.length - 1; i >= 0; i--) {
+                const projectile = projectiles[i];
+                
+                for (let j = negativeThoughtEntities.length - 1; j >= 0; j--) {
+                    const thought = negativeThoughtEntities[j];
+                    
+                    // Check distance
+                    const distance = projectile.mesh.position.distanceTo(thought.mesh.position);
+                    if (distance < 1.5) { // Collision threshold
+                        // Remove projectile
+                        scene.remove(projectile.mesh);
+                        
+                        // Remove trail particles
+                        if (projectile.trail) {
+                            for (const trailPart of projectile.trail) {
+                                scene.remove(trailPart);
+                            }
+                        }
+                        
+                        projectiles.splice(i, 1);
+                        
+                        // Check if correct ammo type
+                        if (projectile.ammoType === thought.correctAmmo) {
+                            // Correct match - damage thought
+                            thought.health--;
+                            
+                            // Create particle effect
+                            createParticleEffect(thought.mesh.position.clone(), 0x00ffff);
+                            
+                            // Play hit sound
+                            playSound('hit');
+                            
+                            // If health depleted, transform the thought
+                            if (thought.health <= 0) {
+                                // Remove thought
+                                scene.remove(thought.mesh);
+                                negativeThoughtEntities.splice(j, 1);
+                                
+                                // Create transformation effect
+                                createParticleEffect(thought.mesh.position.clone(), 0xffffff, 30);
+                                
+                                // Play transform sound
+                                playSound('transform');
+                                
+                                // Update score and count
+                                gameState.score += 100;
+                                gameState.thoughtsCleared++;
+                                updateHUD();
+                            }
+                        } else {
+                            // Incorrect match - stun thought temporarily
+                            thought.stunned = true;
+                            thought.stunTimer = 30;
+                            
+                            // Visual feedback
+                            createParticleEffect(thought.mesh.position.clone(), 0xff0000);
+                            
+                            // Update score slightly (for the attempt)
+                            gameState.score += 10;
+                            updateHUD();
+                        }
+                        
+                        // Break out of inner loop since projectile is removed
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Check game conditions (level complete, game over)
+        function checkGameConditions() {
+            // Check for level complete
+            if (negativeThoughtEntities.length === 0) {
+                gameState.playing = false;
+                showLevelComplete();
+            }
+            
+            // Check for game over
+            if (gameState.health <= 0) {
+                gameState.playing = false;
+                gameState.health = 0;
+                updateHUD();
+                showGameOver();
+            }
+        }
+
+        // Initialize game when page loads
+        window.onload = init;
+    </script>
+</body>
+</html>
