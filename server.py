@@ -14,7 +14,7 @@ CORS(app)  # Allow cross-origin requests
 
 # Configuration
 LLM_API_TYPE = "deepinfra"  # Options: "ollama", "deepinfra", "openai", "anthropic"
-DEFAULT_MODEL = "mistralai/Mixtral-8x7B-Instruct-v0.1"  # Default model for DeepInfra
+DEFAULT_MODEL = "meta-llama/Llama-2-70b-chat-hf"  # Default model for DeepInfra
 TEMPLATE_GAME_PATH = "templates/3d_shooter_accepting_being_tired.html"  # Local path to template
 DEBUG_GAMES_DIR = "debug_games"  # Directory for storing debug copies of generated games
 DEEPINFRA_API_KEY = "xXIq1CQzz2C2a3tIycGCZwDBAYjqnB4T"  # Your DeepInfra API key
@@ -781,5 +781,5 @@ if __name__ == '__main__':
                 print("WARNING: Ollama is not running. Please start it manually.")
     
     # Start the server
-    print("Starting server on http://localhost:5000")
-    app.run(debug=True, port=5000) 
+    print("Starting server on http://localhost:5002")
+    app.run(debug=True, port=5002) 
