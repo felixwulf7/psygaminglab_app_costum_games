@@ -13,11 +13,11 @@ app = Flask(__name__, static_folder='static')
 CORS(app)  # Allow cross-origin requests
 
 # Configuration
-LLM_API_TYPE = "deepinfra"  # Options: "ollama", "deepinfra", "openai", "anthropic"
+LLM_API_TYPE = "deepinfra"  # Only using DeepInfra, not Ollama
 DEFAULT_MODEL = "meta-llama/Llama-2-70b-chat-hf"  # Default model for DeepInfra
 TEMPLATE_GAME_PATH = "templates/3d_shooter_accepting_being_tired.html"  # Local path to template
 DEBUG_GAMES_DIR = "debug_games"  # Directory for storing debug copies of generated games
-DEEPINFRA_API_KEY = "xXIq1CQzz2C2a3tIycGCZwDBAYjqnB4T"  # Your DeepInfra API key
+DEEPINFRA_API_KEY = "RZrT9q4G0JtMSg1mkGKKL3UqIkkEHNj7"  # Your DeepInfra API key
 
 # Check if Ollama is running
 def check_ollama_running():
@@ -733,31 +733,14 @@ def serve_game(filename):
 
 @app.route('/api/models')
 def get_models():
-    if LLM_API_TYPE == "ollama":
-        # Check if Ollama is running
-        if not check_ollama_running():
-            if not start_ollama():
-                return jsonify({"error": "Ollama is not running and couldn't be started"}), 500
-        
-        try:
-            response = requests.get("http://localhost:11434/api/tags")
-            if response.status_code == 200:
-                models = response.json().get("models", [])
-                return jsonify({"models": [model["name"] for model in models]})
-            else:
-                return jsonify({"error": "Failed to get models from Ollama"}), 500
-        except Exception as e:
-            return jsonify({"error": f"Error connecting to Ollama: {str(e)}"}), 500
-    elif LLM_API_TYPE == "deepinfra":
-        # For DeepInfra, we'll return a fixed list of available models
-        models = [
-            "mistralai/Mixtral-8x7B-Instruct-v0.1",
-            "meta-llama/Llama-2-70b-chat-hf",
-            "microsoft/phi-2"
-        ]
-        return jsonify({"models": models})
-    else:
-        return jsonify({"error": f"Unsupported LLM API type: {LLM_API_TYPE}"}), 500
+    # Always return DeepInfra models, regardless of current configuration
+    models = [
+        "gemma3:4b",
+        "mistralai/Mixtral-8x7B-Instruct-v0.1",
+        "meta-llama/Llama-2-70b-chat-hf",
+        "microsoft/phi-2"
+    ]
+    return jsonify({"models": models})
 
 if __name__ == '__main__':
     # Create static directory if it doesn't exist

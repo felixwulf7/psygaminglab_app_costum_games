@@ -202,7 +202,7 @@
             </div>
             
             <div>
-                <label for="modelSelect">Choose LLM Model (Requires Ollama)</label>
+                <label for="modelSelect">Choose LLM Model</label>
                 <select id="modelSelect">
                     <option value="gemma3:4b">Gemma 3 4B (default)</option>
                     <!-- Additional models will be populated from the API -->
@@ -274,8 +274,8 @@
                 })
                 .catch(err => {
                     console.error('Error loading models:', err);
-                    // Show Ollama not running message
-                    error.textContent = 'Could not connect to Ollama. Please ensure Ollama is installed and running.';
+                    // Don't show Ollama error, show generic error instead
+                    error.textContent = 'Could not load available models. Please try again later.';
                     error.style.display = 'block';
                 });
             
